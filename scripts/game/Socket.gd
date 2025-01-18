@@ -128,6 +128,21 @@ func _on_data_received():
 		Rhythia.selected_song = song
 		yield(get_tree().create_timer(0.5),"timeout")
 		get_tree().change_scene("res://scenes/loaders/songload.tscn")
+	
+	if payload.get("import_song"):
+		var song
+		song = Song.new()
+		song.load_from_sspm(payload.get("import_song"))
+		var result = song.convert_to_sspm()
+		if result == "Converted!":
+			Rhythia.registry_song.check_and_remove_id(song.id)
+			song = Rhythia.registry_song.add_sspm_map("user://maps/%s.sspm" % song.id)
+		var list = $"/root/Menu/Main/Maps/MapRegistry/S/VBoxContainer"
+		list.prepare_songs()
+		list.build_list()
+		if song:
+			Rhythia.select_song(song)
+			list.switch_to_play_screen()
 
 
 

@@ -124,11 +124,6 @@ _global_script_classes=[ {
 "language": "GDScript",
 "path": "res://scripts/ui/FileSelector.gd"
 }, {
-"base": "",
-"class": "GDCef",
-"language": "NativeScript",
-"path": "res://libs/gdcef.gdns"
-}, {
 "base": "Resource",
 "class": "GameState",
 "language": "GDScript",
@@ -238,7 +233,6 @@ _global_script_class_icons={
 "DiscordResult": "",
 "DiscordUser": "",
 "FileSelector2D": "",
-"GDCef": "",
 "GameState": "",
 "ImageLoader": "",
 "Member": "",

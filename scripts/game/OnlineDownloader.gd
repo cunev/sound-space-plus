@@ -1,7 +1,7 @@
 extends Node
 
-const HELPER_VERSION_URL = "https://github.com/cunev/rhythia-online-release/releases/download/packaged/online-client-version.txt"
-const HELPER_DOWNLOAD_URL = "https://github.com/cunev/rhythia-online-release/releases/download/packaged/online-client.zip"
+const HELPER_VERSION_URL = "https://github.com/cunev/rhythia-online-release/releases/download/packaged-testing/online-client-version.txt"
+const HELPER_DOWNLOAD_URL = "https://github.com/cunev/rhythia-online-release/releases/download/packaged-testing/online-client.zip"
 const HELPER_PATH = "user://helper"
 const VERSION_FILE = "user://helper_version.txt"
 
@@ -159,7 +159,7 @@ func launch_helper():
 	print("Launching helper module...")
 	
 	# First close any existing processes
-#	close_existing_processes()
+	close_existing_processes()
 	
 	get_tree().change_scene("res://scenes/Intro.tscn")
 	
