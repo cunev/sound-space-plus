@@ -9,6 +9,7 @@ var _wsClient = WebSocketClient.new()
 # Maximum number of reconnection attempts (-1 for unlimited retries)
 export var max_retries = -1
 var retry_count = 0
+var loadingProgress = 0
 var reconnect_delay = 2.0 # Delay between reconnection attempts in seconds
 var forceExit = false
 
@@ -91,6 +92,12 @@ func _on_data_received():
 	print("RECEIVED:", payload)
 	
 	connected = true
+	
+	if(payload.get("loading")):
+		loadingProgress = payload.get("loading")
+	
+	if(payload.get("loaded")):
+		get_tree().change_scene("res://scenes/Intro.tscn")
 	
 	if(payload.get("test")==1):
 		send_start()

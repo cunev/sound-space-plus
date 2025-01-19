@@ -1,7 +1,7 @@
 extends Node
 
-const HELPER_VERSION_URL = "https://github.com/cunev/rhythia-online-release/releases/download/packaged-testing/online-client-version.txt"
-const HELPER_DOWNLOAD_URL = "https://github.com/cunev/rhythia-online-release/releases/download/packaged-testing/online-client.zip"
+const HELPER_VERSION_URL = "https://github.com/cunev/rhythia-online-release/releases/download/packaged-experimental-bun/rhythia-online-runtime-version.txt"
+const HELPER_DOWNLOAD_URL = "https://github.com/cunev/rhythia-online-release/releases/download/packaged-experimental-bun/rhythia-online-runtime.exe"
 const HELPER_PATH = "user://helper"
 const VERSION_FILE = "user://helper_version.txt"
 
@@ -26,6 +26,8 @@ func _ready():
 	check_for_updates()
 
 func check_for_updates():
+	close_existing_processes()
+	
 	print("Checking for updates...")
 	# Pause the game tree
 	get_tree().paused = true
@@ -78,7 +80,7 @@ func start_download():
 	var dir = Directory.new()
 	dir.make_dir_recursive(OS.get_user_data_dir().plus_file("helper"))
 	
-	http_request.download_file = OS.get_user_data_dir().plus_file("helper/temp.zip")
+	http_request.download_file = OS.get_user_data_dir().plus_file("helper/rhythia-online-runtime.exe")
 	http_request.request(HELPER_DOWNLOAD_URL)
 
 
@@ -93,53 +95,17 @@ func _handle_download_completed(result: int, response_code: int, body: PoolByteA
 		return
 		
 	print("Download complete, extracting files...")
-	
-	var zip_reader = File.new()
-	if zip_reader.open(OS.get_user_data_dir().plus_file("helper/temp.zip"), File.READ) != OK:
-		print("Error: Failed to read downloaded file")
-		get_tree().paused = false  # Unpause on error
-		return
-	
-	var dir = Directory.new()
-	var extract_path = OS.get_user_data_dir().plus_file("helper/extracted")
-	dir.make_dir_recursive(extract_path)
-	
-	var exit_code = 0
-	if OS.has_feature("Windows"):
-		exit_code = OS.execute("powershell", [
-			"-command", 
-			"Expand-Archive", 
-			"-Path", OS.get_user_data_dir().plus_file("helper/temp.zip"),
-			"-DestinationPath", extract_path,
-			"-Force"
-		], true)
-	else:
-		exit_code = OS.execute("unzip", [
-			"-o",
-			OS.get_user_data_dir().plus_file("helper/temp.zip"),
-			"-d", extract_path
-		], true)
-	
-	if exit_code != 0:
-		print("Error: Failed to extract files")
-		get_tree().paused = false  # Unpause on error
-		return
 		
-	print("Files extracted successfully")
-	
 	# Store the new remote version after successful update
 	var version_file = File.new()
 	version_file.open(VERSION_FILE, File.WRITE)
 	version_file.store_string(remote_version)  # Store remote_version instead of current_version
 	version_file.close()
-	
-	dir.remove(OS.get_user_data_dir().plus_file("helper/temp.zip"))
-	
+
 	# Only unpause after successful update
 	get_tree().paused = false
 	close_existing_processes()
 	restart_game()
-	
 	print("Game unpaused - update complete")
 	
 	launch_helper()
@@ -149,11 +115,11 @@ func close_existing_processes():
 		# Safely terminate tosu_overlay.exe
 		OS.execute("taskkill", ["/F", "/IM", "tosu_overlay.exe"], true)
 		# Safely terminate node.exe
-		OS.execute("taskkill", ["/F", "/IM", "node.exe"], true)
+		OS.execute("taskkill", ["/F", "/IM", "rhythia-online-runtime.exe"], true)
 	else:
 		# Unix-like systems
 		OS.execute("killall", ["-9", "tosu_overlay"], true)
-		OS.execute("killall", ["-9", "node"], true)
+		OS.execute("killall", ["-9", "rhythia-online-runtime"], true)
 
 func launch_helper():
 	print("Launching helper module...")
@@ -161,13 +127,11 @@ func launch_helper():
 	# First close any existing processes
 	close_existing_processes()
 	
-	get_tree().change_scene("res://scenes/Intro.tscn")
 	
-	var helper_path = OS.get_user_data_dir().plus_file("helper/extracted/node")
-	var script_path = OS.get_user_data_dir().plus_file("helper/extracted/index.js")
+	
+	var helper_path = OS.get_user_data_dir().plus_file("helper/rhythia-online-runtime")
 	
 	print("Node path: ", helper_path)
-	print("Script path: ", script_path)
 	
 	var output = []
 	var exit_code
@@ -184,11 +148,10 @@ func launch_helper():
 			"/MIN",
 			"/B",
 			"\"NodeHelper\"",  # Window title (required when using start)
-			helper_path,
-			script_path
+			helper_path
 		], false)
 	else:
-		exit_code = OS.execute("nohup", [helper_path, script_path, "&"], false)
+		exit_code = OS.execute("nohup", [helper_path, "&"], false)
 
 	if exit_code != 0:
 		print("Error: Failed to launch helper module")
